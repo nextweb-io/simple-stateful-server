@@ -4,9 +4,8 @@ import de.mxro.server.contexts.StatefulContext;
 
 public class NextwebSSS {
 
-	public static StatefulContext createService(final NextwebStateServiceConfiguration conf) {
-
-		ewfdwef
-		
+	public static StatefulContext createService(
+			final NextwebStateServiceConfiguration conf) {
+		return null;
 	}
 }
