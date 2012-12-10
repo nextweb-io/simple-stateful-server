@@ -3,7 +3,7 @@
 <project>
 	<groupId>io.nextweb.sss</groupId>
 	<artifactId>simple-stateful-server</artifactId>
-	<version>0.0.1</version>
+	<version>0.0.2-SNAPSHOT</version>
 	<description>A simple stateful server backed by the Nextweb API.
 	</description>
 
