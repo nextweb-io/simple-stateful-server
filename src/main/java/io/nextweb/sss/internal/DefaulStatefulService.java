@@ -73,21 +73,42 @@ public class DefaulStatefulService implements StatefulContext {
 	@Override
 	public void getProperty(final String path,
 			final GetPropertyCallback callback) {
-		final Query select = root.select("./" + path);
-		select.catchUndefined(new UndefinedListener() {
-
-			@Override
-			public void onUndefined(final UndefinedResult r) {
-
-			}
-		});
+		getProperty(path, null, callback);
 	}
 
 	@Override
 	public void getProperty(final String path, final Object defaultValue,
 			final GetPropertyCallback callback) {
-		// TODO Auto-generated method stub
+		final Query select;
+		if (defaultValue == null) {
+			select = root.select("./" + path);
+		} else {
+			select = root.select("./" + path, defaultValue);
+		}
 
+		select.catchUndefined(new UndefinedListener() {
+
+			@Override
+			public void onUndefined(final UndefinedResult r) {
+				callback.onPropertyDoesNotExist();
+			}
+		});
+
+		select.catchExceptions(new ExceptionListener() {
+
+			@Override
+			public void onFailure(final ExceptionResult r) {
+				callback.onFailure(r.exception());
+			}
+		});
+
+		select.get(new Closure<Node>() {
+
+			@Override
+			public void apply(final Node o) {
+				callback.onPropertyRetrieved(o.value());
+			}
+		});
 	}
 
 	public DefaulStatefulService(final NextwebStateServiceConfiguration conf) {
