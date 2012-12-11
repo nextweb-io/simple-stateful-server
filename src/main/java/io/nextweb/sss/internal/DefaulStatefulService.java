@@ -35,6 +35,7 @@ public class DefaulStatefulService implements StatefulContext {
 
 			@Override
 			public void run() {
+
 				final Query messagesNode = root.select("./" + path, "messages");
 
 				messagesNode.catchExceptions(new ExceptionListener() {
@@ -84,9 +85,10 @@ public class DefaulStatefulService implements StatefulContext {
 						});
 					}
 				});
+
 			}
 
-		}.start();
+		}.run();
 
 	}
 
