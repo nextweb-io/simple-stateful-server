@@ -31,24 +31,13 @@ public class DefaulStatefulService implements StatefulContext {
 	public void log(final String path, final String title,
 			final String message, final LogCallback callback) {
 
-		final Query messagesNode = root.select("./" + path, "messages");
-
-		messagesNode.catchExceptions(new ExceptionListener() {
+		new Thread() {
 
 			@Override
-			public void onFailure(final ExceptionResult r) {
-				callback.onFailure(r.exception());
-			}
-		});
+			public void run() {
+				final Query messagesNode = root.select("./" + path, "messages");
 
-		messagesNode.get(new Closure<Node>() {
-
-			@Override
-			public void apply(final Node o) {
-				final Query appendSafe = messagesNode.appendSafe(title)
-						.appendSafe(message);
-
-				appendSafe.catchExceptions(new ExceptionListener() {
+				messagesNode.catchExceptions(new ExceptionListener() {
 
 					@Override
 					public void onFailure(final ExceptionResult r) {
@@ -56,29 +45,48 @@ public class DefaulStatefulService implements StatefulContext {
 					}
 				});
 
-				appendSafe.catchImpossible(new ImpossibleListener() {
-
-					@Override
-					public void onImpossible(final ImpossibleResult ir) {
-						if (ir.cause().equals("nodewithaddressalreadydefined")) {
-							log(path, title, message, callback);
-							return;
-						}
-						callback.onFailure(new Exception(
-								"Impossible to append log message: "
-										+ ir.message()));
-					}
-				});
-
-				appendSafe.get(new Closure<Node>() {
+				messagesNode.get(new Closure<Node>() {
 
 					@Override
 					public void apply(final Node o) {
-						callback.onLogged();
+						final Query appendSafe = messagesNode.appendSafe(title)
+								.appendSafe(message);
+
+						appendSafe.catchExceptions(new ExceptionListener() {
+
+							@Override
+							public void onFailure(final ExceptionResult r) {
+								callback.onFailure(r.exception());
+							}
+						});
+
+						appendSafe.catchImpossible(new ImpossibleListener() {
+
+							@Override
+							public void onImpossible(final ImpossibleResult ir) {
+								if (ir.cause().equals(
+										"nodewithaddressalreadydefined")) {
+									log(path, title, message, callback);
+									return;
+								}
+								callback.onFailure(new Exception(
+										"Impossible to append log message: "
+												+ ir.message()));
+							}
+						});
+
+						appendSafe.get(new Closure<Node>() {
+
+							@Override
+							public void apply(final Node o) {
+								callback.onLogged();
+							}
+						});
 					}
 				});
 			}
-		});
+
+		}.start();
 
 	}
 
@@ -171,12 +179,11 @@ public class DefaulStatefulService implements StatefulContext {
 			}
 		});
 
-		System.out.println("request close");
 		closeRequest.get(new Closure<Success>() {
 
 			@Override
 			public void apply(final Success o) {
-				System.out.println("close done.");
+
 				callback.onShutdownComplete();
 			}
 		});
