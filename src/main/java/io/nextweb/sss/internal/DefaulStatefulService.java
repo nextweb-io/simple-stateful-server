@@ -7,10 +7,15 @@ import io.nextweb.Session;
 import io.nextweb.fn.Closure;
 import io.nextweb.fn.ExceptionListener;
 import io.nextweb.fn.ExceptionResult;
+import io.nextweb.fn.Result;
+import io.nextweb.fn.Success;
 import io.nextweb.jre.Nextweb;
+import io.nextweb.operations.exceptions.ImpossibleListener;
+import io.nextweb.operations.exceptions.ImpossibleResult;
 import io.nextweb.operations.exceptions.UndefinedListener;
 import io.nextweb.operations.exceptions.UndefinedResult;
 import io.nextweb.sss.NextwebStateServiceConfiguration;
+import de.mxro.server.ShutdownCallback;
 import de.mxro.server.contexts.GetPropertyCallback;
 import de.mxro.server.contexts.LogCallback;
 import de.mxro.server.contexts.SetPropertyCallback;
@@ -25,6 +30,7 @@ public class DefaulStatefulService implements StatefulContext {
 	@Override
 	public void log(final String path, final String title,
 			final String message, final LogCallback callback) {
+
 		final Query messagesNode = root.select("./" + path, "messages");
 
 		final Query appendSafe = messagesNode.appendSafe(title).appendSafe(
@@ -35,6 +41,17 @@ public class DefaulStatefulService implements StatefulContext {
 			@Override
 			public void onFailure(final ExceptionResult r) {
 				callback.onFailure(r.exception());
+			}
+		});
+
+		appendSafe.catchImpossible(new ImpossibleListener() {
+
+			@Override
+			public void onImpossible(final ImpossibleResult ir) {
+				if (ir.cause().equals("nodewithaddressalreadydefined")) {
+					log(path, title, message, callback);
+					return;
+				}
 			}
 		});
 
@@ -122,6 +139,30 @@ public class DefaulStatefulService implements StatefulContext {
 
 	public NextwebStateServiceConfiguration getConfiguration() {
 		return conf;
+	}
+
+	@Override
+	public void shutdown(final ShutdownCallback callback) {
+		final Result<Success> closeRequest = this.session.close();
+
+		closeRequest.catchExceptions(new ExceptionListener() {
+
+			@Override
+			public void onFailure(final ExceptionResult r) {
+				callback.onFailure(r.exception());
+			}
+		});
+
+		System.out.println("request close");
+		closeRequest.get(new Closure<Success>() {
+
+			@Override
+			public void apply(final Success o) {
+				System.out.println("close done.");
+				callback.onShutdownComplete();
+			}
+		});
+
 	}
 
 }
