@@ -7,11 +7,13 @@ import io.nextweb.Node;
 import io.nextweb.NodeList;
 import io.nextweb.Query;
 import io.nextweb.Session;
+import io.nextweb.fn.BasicResult;
 import io.nextweb.fn.Closure;
 import io.nextweb.fn.ExceptionListener;
 import io.nextweb.fn.ExceptionResult;
 import io.nextweb.fn.Result;
 import io.nextweb.fn.Success;
+import io.nextweb.fn.SuccessFail;
 import io.nextweb.jre.Nextweb;
 import io.nextweb.operations.exceptions.ImpossibleListener;
 import io.nextweb.operations.exceptions.ImpossibleResult;
@@ -19,6 +21,7 @@ import io.nextweb.operations.exceptions.UndefinedListener;
 import io.nextweb.operations.exceptions.UndefinedResult;
 import io.nextweb.sss.NextwebStateServiceConfiguration;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -132,6 +135,7 @@ public class DefaulStatefulService implements StatefulContext {
 										@Override
 										public void onFailure(
 												final ExceptionResult r) {
+											scheduledToDelete.remove(link);
 											latch.registerFail(r.exception());
 										}
 									});
@@ -142,9 +146,50 @@ public class DefaulStatefulService implements StatefulContext {
 										public void apply(
 												final NodeList nodeList) {
 
+											final List<BasicResult<?>> res = new ArrayList<BasicResult<?>>(
+													nodeList.size() + 1);
+
 											for (final Node n : nodeList) {
-												child.removeSafe(n);
+												res.add(child.removeSafe(n));
 											}
+
+											res.add(msgs.removeSafe(child));
+
+											final Result<SuccessFail> getAll = session.getAll(
+													true,
+													res.toArray(new BasicResult[res
+															.size()]));
+
+											getAll.catchExceptions(new ExceptionListener() {
+
+												@Override
+												public void onFailure(
+														final ExceptionResult r) {
+													scheduledToDelete
+															.remove(link);
+													latch.registerFail(r
+															.exception());
+												}
+											});
+
+											getAll.get(new Closure<SuccessFail>() {
+
+												@Override
+												public void apply(
+														final SuccessFail o) {
+													if (o.isFail()) {
+														scheduledToDelete
+																.remove(link);
+														latch.registerFail(o
+																.getException());
+														return;
+													}
+
+													scheduledToDelete
+															.remove(link);
+													latch.registerSuccess();
+												}
+											});
 
 										}
 									});
