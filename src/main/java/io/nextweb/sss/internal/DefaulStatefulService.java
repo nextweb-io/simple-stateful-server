@@ -2,6 +2,7 @@ package io.nextweb.sss.internal;
 
 import io.nextweb.Link;
 import io.nextweb.LinkList;
+import io.nextweb.LinkListQuery;
 import io.nextweb.ListQuery;
 import io.nextweb.Node;
 import io.nextweb.NodeList;
@@ -90,120 +91,126 @@ public class DefaulStatefulService implements StatefulContext {
 					@Override
 					public void apply(final Node o) {
 
-						msgs.selectAllLinks().get(new Closure<LinkList>() {
-
-							@Override
-							public void apply(final LinkList messageLinks) {
-
-								if (messageLinks.size() < conf
-										.maxMessagesPerNode()) {
-									callback.onLogged();
-									return;
-								}
-
-								final List<String> firstTenLinks = messageLinks
-										.uris().subList(0, 10);
-
-								final CallbackLatch latch = new CallbackLatch(
-										firstTenLinks.size()) {
-
-									@Override
-									public void onFailed(final Throwable t) {
-										callback.onFailure(t);
-									}
-
-									@Override
-									public void onCompleted() {
-										callback.onLogged();
-									}
-								};
-
-								for (final String link : firstTenLinks) {
-
-									if (scheduledToDelete.contains(link)) {
-										latch.registerSuccess();
-										continue;
-									}
-
-									final Link child = session.node(link);
-
-									final ListQuery getQuery = child
-											.selectAll();
-
-									getQuery.catchExceptions(new ExceptionListener() {
-
-										@Override
-										public void onFailure(
-												final ExceptionResult r) {
-											scheduledToDelete.remove(link);
-											latch.registerFail(r.exception());
-										}
-									});
-
-									getQuery.get(new Closure<NodeList>() {
-
-										@Override
-										public void apply(
-												final NodeList nodeList) {
-
-											final List<BasicResult<?>> res = new ArrayList<BasicResult<?>>(
-													nodeList.size() + 1);
-
-											for (final Node n : nodeList) {
-												res.add(child.removeSafe(n));
-											}
-
-											res.add(msgs.removeSafe(child));
-
-											final Result<SuccessFail> getAll = session.getAll(
-													true,
-													res.toArray(new BasicResult[res
-															.size()]));
-
-											getAll.catchExceptions(new ExceptionListener() {
-
-												@Override
-												public void onFailure(
-														final ExceptionResult r) {
-													scheduledToDelete
-															.remove(link);
-													latch.registerFail(r
-															.exception());
-												}
-											});
-
-											getAll.get(new Closure<SuccessFail>() {
-
-												@Override
-												public void apply(
-														final SuccessFail o) {
-													if (o.isFail()) {
-														scheduledToDelete
-																.remove(link);
-														latch.registerFail(o
-																.getException());
-														return;
-													}
-
-													scheduledToDelete
-															.remove(link);
-													latch.registerSuccess();
-												}
-											});
-
-										}
-									});
-
-								}
-
-							}
-						});
+						checkForOverflow(callback, msgs);
 
 					}
+
 				});
 			}
 		});
 
+	}
+
+	private void checkForOverflow(final LogCallback callback, final Node msgs) {
+		final LinkListQuery selectAllLinks = msgs.selectAllLinks();
+
+		selectAllLinks.catchExceptions(new ExceptionListener() {
+
+			@Override
+			public void onFailure(final ExceptionResult r) {
+				callback.onFailure(r.exception());
+			}
+		});
+
+		selectAllLinks.get(new Closure<LinkList>() {
+
+			@Override
+			public void apply(final LinkList messageLinks) {
+
+				if (messageLinks.size() < conf.maxMessagesPerNode()) {
+					callback.onLogged();
+					return;
+				}
+
+				final List<String> firstTenLinks = messageLinks.uris().subList(
+						0, 10);
+
+				final CallbackLatch latch = new CallbackLatch(firstTenLinks
+						.size()) {
+
+					@Override
+					public void onFailed(final Throwable t) {
+						callback.onFailure(t);
+					}
+
+					@Override
+					public void onCompleted() {
+						callback.onLogged();
+					}
+				};
+
+				for (final String link : firstTenLinks) {
+
+					synchronized (scheduledToDelete) {
+						if (scheduledToDelete.contains(link)) {
+							latch.registerSuccess();
+							continue;
+						}
+						scheduledToDelete.add(link);
+					}
+
+					final Link child = session.node(link);
+
+					final ListQuery getQuery = child.selectAll();
+
+					getQuery.catchExceptions(new ExceptionListener() {
+
+						@Override
+						public void onFailure(final ExceptionResult r) {
+							scheduledToDelete.remove(link);
+							latch.registerFail(r.exception());
+						}
+					});
+
+					getQuery.get(new Closure<NodeList>() {
+
+						@Override
+						public void apply(final NodeList nodeList) {
+
+							final List<BasicResult<?>> res = new ArrayList<BasicResult<?>>(
+									nodeList.size() + 1);
+
+							for (final Node n : nodeList) {
+								res.add(child.removeSafe(n));
+							}
+
+							res.add(msgs.removeSafe(child));
+
+							final Result<SuccessFail> getAll = session.getAll(
+									true,
+									res.toArray(new BasicResult[res.size()]));
+
+							getAll.catchExceptions(new ExceptionListener() {
+
+								@Override
+								public void onFailure(final ExceptionResult r) {
+									scheduledToDelete.remove(link);
+									latch.registerFail(r.exception());
+								}
+							});
+
+							getAll.get(new Closure<SuccessFail>() {
+
+								@Override
+								public void apply(final SuccessFail o) {
+									if (o.isFail()) {
+										scheduledToDelete.remove(link);
+										latch.registerFail(o.getException());
+										return;
+									}
+
+									scheduledToDelete.remove(link);
+									latch.registerSuccess();
+								}
+							});
+
+						}
+					});
+
+				}
+
+			}
+		});
 	}
 
 	@Override

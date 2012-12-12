@@ -5,15 +5,17 @@ import io.nextweb.sss.internal.DefaulStatefulService;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
+import one.utils.concurrent.Concurrency;
+
 import org.junit.Assert;
 
 import de.mxro.server.contexts.StatefulContext;
 
 public class NextwebSSS {
 
-	public static StatefulContext createService(
+	public static StatefulContext createService(final Concurrency con,
 			final NextwebStateServiceConfiguration conf) {
-		return new DefaulStatefulService(conf);
+		return new DefaulStatefulService(conf, con);
 	}
 
 	// <!-- one.download
