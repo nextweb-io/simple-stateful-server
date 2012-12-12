@@ -43,9 +43,8 @@ public class DefaulStatefulService implements StatefulContext {
 
 	private final Set<String> scheduledToDelete;
 
-	@Override
-	public void log(final String path, final String title,
-			final String message, final LogCallback callback) {
+	private void logInternal(final int depth, final String path,
+			final String title, final String message, final LogCallback callback) {
 
 		final Query messagesNode = root.select("./" + path, "messages");
 
@@ -61,8 +60,14 @@ public class DefaulStatefulService implements StatefulContext {
 
 			@Override
 			public void apply(final Node msgs) {
-				final Query appendSafe = messagesNode.appendSafe(title)
-						.appendSafe(message);
+				final Query appendSafe;
+				if (depth == 0) {
+					appendSafe = messagesNode.appendSafe(title).appendSafe(
+							message);
+				} else {
+					appendSafe = messagesNode.appendSafe(title, "./" + depth
+							+ Math.abs(this.hashCode()));
+				}
 
 				appendSafe.catchExceptions(new ExceptionListener() {
 
@@ -76,8 +81,11 @@ public class DefaulStatefulService implements StatefulContext {
 
 					@Override
 					public void onImpossible(final ImpossibleResult ir) {
-						if (ir.cause().equals("nodewithaddressalreadydefined")) {
-							log(path, title, message, callback);
+						if (depth < 10
+								&& ir.cause().equals(
+										"nodewithaddressalreadydefined")) {
+							logInternal(depth + 1, path, title, message,
+									callback);
 							return;
 						}
 						callback.onFailure(new Exception(
@@ -99,6 +107,12 @@ public class DefaulStatefulService implements StatefulContext {
 			}
 		});
 
+	}
+
+	@Override
+	public void log(final String path, final String title,
+			final String message, final LogCallback callback) {
+		logInternal(0, path, title, message, callback);
 	}
 
 	private void checkForOverflow(final LogCallback callback, final Node msgs) {
@@ -148,7 +162,7 @@ public class DefaulStatefulService implements StatefulContext {
 						}
 						scheduledToDelete.add(link);
 					}
-
+					System.out.println("plan to delete: " + link);
 					final Link child = session.node(link);
 
 					final ListQuery getQuery = child.selectAll();
@@ -168,13 +182,16 @@ public class DefaulStatefulService implements StatefulContext {
 						public void apply(final NodeList nodeList) {
 
 							final List<BasicResult<?>> res = new ArrayList<BasicResult<?>>(
-									nodeList.size() + 1);
+									nodeList.size() + 2);
 
 							for (final Node n : nodeList) {
 								res.add(child.removeSafe(n));
 							}
 
 							res.add(msgs.removeSafe(child));
+
+							res.add(msgs.clearVersions(conf
+									.maxMessagesPerNode()));
 
 							final Result<SuccessFail> getAll = session.getAll(
 									true,
@@ -199,6 +216,7 @@ public class DefaulStatefulService implements StatefulContext {
 										return;
 									}
 
+									System.out.println("DELTE SUCCESSFUL");
 									scheduledToDelete.remove(link);
 									latch.registerSuccess();
 								}
