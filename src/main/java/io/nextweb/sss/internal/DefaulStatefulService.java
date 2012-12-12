@@ -1,9 +1,12 @@
 package io.nextweb.sss.internal;
 
 import io.nextweb.Link;
+import io.nextweb.LinkList;
 import io.nextweb.Node;
+import io.nextweb.NodeList;
 import io.nextweb.Query;
 import io.nextweb.Session;
+import io.nextweb.fn.BasicResult;
 import io.nextweb.fn.Closure;
 import io.nextweb.fn.ExceptionListener;
 import io.nextweb.fn.ExceptionResult;
@@ -15,6 +18,11 @@ import io.nextweb.operations.exceptions.ImpossibleResult;
 import io.nextweb.operations.exceptions.UndefinedListener;
 import io.nextweb.operations.exceptions.UndefinedResult;
 import io.nextweb.sss.NextwebStateServiceConfiguration;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import one.async.joiner.CallbackLatch;
 import de.mxro.server.ShutdownCallback;
 import de.mxro.server.contexts.GetPropertyCallback;
 import de.mxro.server.contexts.LogCallback;
@@ -31,14 +39,24 @@ public class DefaulStatefulService implements StatefulContext {
 	public void log(final String path, final String title,
 			final String message, final LogCallback callback) {
 
-		new Thread() {
+		final Query messagesNode = root.select("./" + path, "messages");
+
+		messagesNode.catchExceptions(new ExceptionListener() {
 
 			@Override
-			public void run() {
+			public void onFailure(final ExceptionResult r) {
+				callback.onFailure(r.exception());
+			}
+		});
 
-				final Query messagesNode = root.select("./" + path, "messages");
+		messagesNode.get(new Closure<Node>() {
 
-				messagesNode.catchExceptions(new ExceptionListener() {
+			@Override
+			public void apply(final Node msgs) {
+				final Query appendSafe = messagesNode.appendSafe(title)
+						.appendSafe(message);
+
+				appendSafe.catchExceptions(new ExceptionListener() {
 
 					@Override
 					public void onFailure(final ExceptionResult r) {
@@ -46,49 +64,81 @@ public class DefaulStatefulService implements StatefulContext {
 					}
 				});
 
-				messagesNode.get(new Closure<Node>() {
+				appendSafe.catchImpossible(new ImpossibleListener() {
 
 					@Override
-					public void apply(final Node o) {
-						final Query appendSafe = messagesNode.appendSafe(title)
-								.appendSafe(message);
-
-						appendSafe.catchExceptions(new ExceptionListener() {
-
-							@Override
-							public void onFailure(final ExceptionResult r) {
-								callback.onFailure(r.exception());
-							}
-						});
-
-						appendSafe.catchImpossible(new ImpossibleListener() {
-
-							@Override
-							public void onImpossible(final ImpossibleResult ir) {
-								if (ir.cause().equals(
-										"nodewithaddressalreadydefined")) {
-									log(path, title, message, callback);
-									return;
-								}
-								callback.onFailure(new Exception(
-										"Impossible to append log message: "
-												+ ir.message()));
-							}
-						});
-
-						appendSafe.get(new Closure<Node>() {
-
-							@Override
-							public void apply(final Node o) {
-								callback.onLogged();
-							}
-						});
+					public void onImpossible(final ImpossibleResult ir) {
+						if (ir.cause().equals("nodewithaddressalreadydefined")) {
+							log(path, title, message, callback);
+							return;
+						}
+						callback.onFailure(new Exception(
+								"Impossible to append log message: "
+										+ ir.message()));
 					}
 				});
 
-			}
+				appendSafe.get(new Closure<Node>() {
 
-		}.run();
+					@Override
+					public void apply(final Node o) {
+
+						msgs.selectAllLinks().get(new Closure<LinkList>() {
+
+							@Override
+							public void apply(final LinkList messageLinks) {
+
+								System.out.println(messageLinks.size());
+
+								if (messageLinks.size() < conf
+										.maxMessagesPerNode()) {
+									callback.onLogged();
+									return;
+								}
+
+								final List<String> firstTenLinks = messageLinks
+										.uris().subList(0, 10);
+
+								final List<BasicResult<?>> scheduledOps = new ArrayList<BasicResult<?>>(
+										firstTenLinks.size());
+
+								final CallbackLatch latch = new CallbackLatch(
+										firstTenLinks.size()) {
+
+									@Override
+									public void onFailed(final Throwable t) {
+										callback.onFailure(t);
+									}
+
+									@Override
+									public void onCompleted() {
+										callback.onLogged();
+									}
+								};
+
+								for (final String link : firstTenLinks) {
+
+									final Link child = session.node(link);
+
+									child.selectAll().get(
+											new Closure<NodeList>() {
+
+												@Override
+												public void apply(
+														final NodeList o) {
+
+												}
+											});
+
+								}
+
+							}
+						});
+
+					}
+				});
+			}
+		});
 
 	}
 

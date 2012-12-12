@@ -11,4 +11,11 @@ public interface NextwebStateServiceConfiguration {
 
 	public String getRootNodeSecret();
 
+	/**
+	 * What is the maximum number of log messages to be kept for a path?
+	 * 
+	 * @return
+	 */
+	public int maxMessagesPerNode();
+
 }
