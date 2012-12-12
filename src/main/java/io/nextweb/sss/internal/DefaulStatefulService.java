@@ -162,7 +162,7 @@ public class DefaulStatefulService implements StatefulContext {
 						}
 						scheduledToDelete.add(link);
 					}
-					System.out.println("plan to delete: " + link);
+
 					final Link child = session.node(link);
 
 					final ListQuery getQuery = child.selectAll();
@@ -216,7 +216,6 @@ public class DefaulStatefulService implements StatefulContext {
 										return;
 									}
 
-									System.out.println("DELTE SUCCESSFUL");
 									scheduledToDelete.remove(link);
 									latch.registerSuccess();
 								}
