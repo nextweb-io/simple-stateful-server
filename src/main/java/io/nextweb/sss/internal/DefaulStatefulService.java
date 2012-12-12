@@ -2,11 +2,11 @@ package io.nextweb.sss.internal;
 
 import io.nextweb.Link;
 import io.nextweb.LinkList;
+import io.nextweb.ListQuery;
 import io.nextweb.Node;
 import io.nextweb.NodeList;
 import io.nextweb.Query;
 import io.nextweb.Session;
-import io.nextweb.fn.BasicResult;
 import io.nextweb.fn.Closure;
 import io.nextweb.fn.ExceptionListener;
 import io.nextweb.fn.ExceptionResult;
@@ -19,10 +19,11 @@ import io.nextweb.operations.exceptions.UndefinedListener;
 import io.nextweb.operations.exceptions.UndefinedResult;
 import io.nextweb.sss.NextwebStateServiceConfiguration;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import one.async.joiner.CallbackLatch;
+import one.utils.concurrent.Concurrency;
 import de.mxro.server.ShutdownCallback;
 import de.mxro.server.contexts.GetPropertyCallback;
 import de.mxro.server.contexts.LogCallback;
@@ -34,6 +35,9 @@ public class DefaulStatefulService implements StatefulContext {
 	private final NextwebStateServiceConfiguration conf;
 	private final Session session;
 	private final Link root;
+	private final Concurrency con;
+
+	private final Set<String> scheduledToDelete;
 
 	@Override
 	public void log(final String path, final String title,
@@ -88,8 +92,6 @@ public class DefaulStatefulService implements StatefulContext {
 							@Override
 							public void apply(final LinkList messageLinks) {
 
-								System.out.println(messageLinks.size());
-
 								if (messageLinks.size() < conf
 										.maxMessagesPerNode()) {
 									callback.onLogged();
@@ -98,9 +100,6 @@ public class DefaulStatefulService implements StatefulContext {
 
 								final List<String> firstTenLinks = messageLinks
 										.uris().subList(0, 10);
-
-								final List<BasicResult<?>> scheduledOps = new ArrayList<BasicResult<?>>(
-										firstTenLinks.size());
 
 								final CallbackLatch latch = new CallbackLatch(
 										firstTenLinks.size()) {
@@ -118,17 +117,37 @@ public class DefaulStatefulService implements StatefulContext {
 
 								for (final String link : firstTenLinks) {
 
+									if (scheduledToDelete.contains(link)) {
+										latch.registerSuccess();
+										continue;
+									}
+
 									final Link child = session.node(link);
 
-									child.selectAll().get(
-											new Closure<NodeList>() {
+									final ListQuery getQuery = child
+											.selectAll();
 
-												@Override
-												public void apply(
-														final NodeList o) {
+									getQuery.catchExceptions(new ExceptionListener() {
 
-												}
-											});
+										@Override
+										public void onFailure(
+												final ExceptionResult r) {
+											latch.registerFail(r.exception());
+										}
+									});
+
+									getQuery.get(new Closure<NodeList>() {
+
+										@Override
+										public void apply(
+												final NodeList nodeList) {
+
+											for (final Node n : nodeList) {
+												child.removeSafe(n);
+											}
+
+										}
+									});
 
 								}
 
@@ -206,12 +225,16 @@ public class DefaulStatefulService implements StatefulContext {
 		});
 	}
 
-	public DefaulStatefulService(final NextwebStateServiceConfiguration conf) {
+	public DefaulStatefulService(final NextwebStateServiceConfiguration conf,
+			final Concurrency con) {
 		super();
 		this.conf = conf;
 		this.session = Nextweb.createSession();
 		this.root = this.session.node(conf.getRootNodeUri(),
 				conf.getRootNodeSecret());
+		this.con = con;
+		this.scheduledToDelete = this.con.newCollection().newThreadSafeSet(
+				String.class);
 
 	}
 
