@@ -12,6 +12,7 @@ import io.nextweb.fn.BasicResult;
 import io.nextweb.fn.Closure;
 import io.nextweb.fn.ExceptionListener;
 import io.nextweb.fn.ExceptionResult;
+import io.nextweb.fn.IntegerResult;
 import io.nextweb.fn.Result;
 import io.nextweb.fn.Success;
 import io.nextweb.fn.SuccessFail;
@@ -149,7 +150,26 @@ public class DefaulStatefulService implements StatefulContext {
 
 					@Override
 					public void onCompleted() {
-						callback.onLogged();
+
+						final IntegerResult clearVersions = msgs
+								.clearVersions(50);
+
+						clearVersions.catchExceptions(new ExceptionListener() {
+
+							@Override
+							public void onFailure(final ExceptionResult r) {
+								callback.onFailure(r.exception());
+							}
+						});
+
+						clearVersions.get(new Closure<Integer>() {
+
+							@Override
+							public void apply(final Integer o) {
+								callback.onLogged();
+							}
+						});
+
 					}
 				};
 
@@ -248,7 +268,24 @@ public class DefaulStatefulService implements StatefulContext {
 
 			@Override
 			public void apply(final Node o) {
-				callback.onPropertySet();
+				final IntegerResult clearVersions = setValueSafe
+						.clearVersions(20);
+				clearVersions.catchExceptions(new ExceptionListener() {
+
+					@Override
+					public void onFailure(final ExceptionResult r) {
+						callback.onFailure(r.exception());
+					}
+				});
+
+				clearVersions.get(new Closure<Integer>() {
+
+					@Override
+					public void apply(final Integer o) {
+						callback.onPropertySet();
+					}
+				});
+
 			}
 		});
 	}
