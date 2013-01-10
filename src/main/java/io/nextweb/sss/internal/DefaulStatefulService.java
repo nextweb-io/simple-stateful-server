@@ -57,6 +57,7 @@ public class DefaulStatefulService implements StatefulContext {
             }
         });
 
+        // System.out.println("get messages node");
         messagesNode.get(new Closure<Node>() {
 
             @Override
@@ -96,6 +97,7 @@ public class DefaulStatefulService implements StatefulContext {
                     }
                 });
 
+                // System.out.println("get append " + message);
                 appendSafe.get(new Closure<Node>() {
 
                     @Override
