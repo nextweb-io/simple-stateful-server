@@ -84,9 +84,9 @@ public class DefaulStatefulService implements StatefulContext {
 
                     @Override
                     public void onImpossible(final ImpossibleResult ir) {
-                        if (depth < 10
-                                && ir.cause().equals(
-                                        "nodewithaddressalreadydefined")) {
+                        if (depth < 20
+
+                        /* && ir.cause().equals("nodewithaddressalreadydefined") */) {
                             logInternal(depth + 1, path, title, message,
                                     callback);
                             return;
