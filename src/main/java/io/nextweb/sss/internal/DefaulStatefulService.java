@@ -103,10 +103,16 @@ public class DefaulStatefulService implements StatefulContext {
                     @Override
                     public void apply(final Node o) {
 
-                        checkForOverflow(callback, msgs);
-
                     }
 
+                });
+
+                session.commit().get(new Closure<Success>() {
+
+                    @Override
+                    public void apply(final Success o) {
+                        checkForOverflow(callback, msgs);
+                    }
                 });
             }
         });
