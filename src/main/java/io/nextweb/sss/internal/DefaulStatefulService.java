@@ -46,7 +46,7 @@ public class DefaulStatefulService implements StatefulContext {
 
     private void logInternal(final int depth, final String path,
             final String title, final String message, final LogCallback callback) {
-        System.out.println("logging " + path + " " + message);
+        // System.out.println("logging " + path + " " + message);
         final Query messagesNode = root.select("./" + path, "messages");
 
         messagesNode.catchExceptions(new ExceptionListener() {
