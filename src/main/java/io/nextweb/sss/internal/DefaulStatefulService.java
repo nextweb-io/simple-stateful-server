@@ -46,7 +46,7 @@ public class DefaulStatefulService implements StatefulContext {
 
     private void logInternal(final int depth, final String path,
             final String title, final String message, final LogCallback callback) {
-        // System.out.println("logging " + path + " " + message);
+        System.out.println("logging " + path + " " + title);
         final Query messagesNode = root.select("./" + path, "messages");
 
         messagesNode.catchExceptions(new ExceptionListener() {
@@ -57,11 +57,12 @@ public class DefaulStatefulService implements StatefulContext {
             }
         });
 
-        // System.out.println("get messages node");
+        System.out.println("get messages node");
         messagesNode.get(new Closure<Node>() {
 
             @Override
             public void apply(final Node msgs) {
+                System.out.println("Messages node retrieved. " + msgs.uri());
                 final Query appendSafe;
                 if (depth == 0) {
                     appendSafe = messagesNode.appendSafe(title).appendSafe(
@@ -84,6 +85,7 @@ public class DefaulStatefulService implements StatefulContext {
 
                     @Override
                     public void onImpossible(final ImpossibleResult ir) {
+                        System.out.println("IMPOSSILBE " + ir.message());
                         if (depth < 20
 
                         /* && ir.cause().equals("nodewithaddressalreadydefined") */) {
@@ -97,12 +99,12 @@ public class DefaulStatefulService implements StatefulContext {
                     }
                 });
 
-                // System.out.println("get append " + message);
+                System.out.println("get append " + message);
                 appendSafe.get(new Closure<Node>() {
 
                     @Override
                     public void apply(final Node o) {
-
+                        checkForOverflow(callback, msgs);
                     }
 
                 });
@@ -111,7 +113,7 @@ public class DefaulStatefulService implements StatefulContext {
 
                     @Override
                     public void apply(final Success o) {
-                        checkForOverflow(callback, msgs);
+
                     }
                 });
             }
@@ -122,10 +124,12 @@ public class DefaulStatefulService implements StatefulContext {
     @Override
     public void log(final String path, final String title,
             final String message, final LogCallback callback) {
+        System.out.println("logging; " + path + " " + title);
         logInternal(0, path, title, message, callback);
     }
 
     private void checkForOverflow(final LogCallback callback, final Node msgs) {
+        System.out.println("check for overflow. " + msgs.uri());
         final LinkListQuery selectAllLinks = msgs.selectAllLinks();
 
         selectAllLinks.catchExceptions(new ExceptionListener() {
@@ -141,16 +145,23 @@ public class DefaulStatefulService implements StatefulContext {
             @Override
             public void apply(final LinkList messageLinks) {
 
+                System.out.println("message: " + msgs.uri());
+                System.out.println("messages: " + messageLinks.size());
+
                 if (messageLinks.size() < conf.maxMessagesPerNode()) {
                     callback.onLogged();
                     return;
                 }
 
-                final List<String> firstTenLinks = messageLinks.uris().subList(
-                        0, 10);
+                final List<String> firstLinks = messageLinks.uris()
+                        .subList(
+                                0,
+                                Math.max(
+                                        10,
+                                        messageLinks.size()
+                                                - conf.maxMessagesPerNode()));
 
-                final CallbackLatch latch = new CallbackLatch(firstTenLinks
-                        .size()) {
+                final CallbackLatch latch = new CallbackLatch(firstLinks.size()) {
 
                     @Override
                     public void onFailed(final Throwable t) {
@@ -182,7 +193,7 @@ public class DefaulStatefulService implements StatefulContext {
                     }
                 };
 
-                for (final String link : firstTenLinks) {
+                for (final String link : firstLinks) {
 
                     synchronized (scheduledToDelete) {
                         if (scheduledToDelete.contains(link)) {
