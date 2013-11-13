@@ -14,6 +14,7 @@ import io.nextweb.fn.Closure;
 import io.nextweb.fn.Result;
 import io.nextweb.fn.Success;
 import io.nextweb.fn.SuccessFail;
+import io.nextweb.fn.exceptions.ExceptionListener;
 import io.nextweb.fn.exceptions.ExceptionResult;
 import io.nextweb.fn.exceptions.ImpossibleListener;
 import io.nextweb.fn.exceptions.ImpossibleResult;
