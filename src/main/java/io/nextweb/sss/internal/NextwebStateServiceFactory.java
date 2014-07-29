@@ -1,5 +1,6 @@
 package io.nextweb.sss.internal;
 
+import one.utils.jre.concurrent.JreConcurrency;
 import io.nextweb.sss.NextwebStateServiceConfiguration;
 import de.mxro.factories.Configuration;
 import de.mxro.factories.Dependencies;
@@ -15,7 +16,7 @@ public class NextwebStateServiceFactory implements Factory<DefaulStatefulService
 	@Override
 	public DefaulStatefulService create(NextwebStateServiceConfiguration conf,
 			Dependencies dependencies) {
-		return new ;
+		return new DefaulStatefulService(conf, new JreConcurrency());
 	}
 
 }
