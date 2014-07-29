@@ -29,11 +29,11 @@ import java.util.Set;
 
 import one.async.joiner.CallbackLatch;
 import one.utils.concurrent.Concurrency;
-import de.mxro.server.ShutdownCallback;
 import de.mxro.server.contexts.GetPropertyCallback;
 import de.mxro.server.contexts.LogCallback;
 import de.mxro.server.contexts.SetPropertyCallback;
 import de.mxro.server.contexts.StatefulContext;
+import de.mxro.service.callbacks.ShutdownCallback;
 
 public class DefaulStatefulService implements StatefulContext {
 
@@ -390,5 +390,7 @@ public class DefaulStatefulService implements StatefulContext {
         });
 
     }
+
+	
 
 }
