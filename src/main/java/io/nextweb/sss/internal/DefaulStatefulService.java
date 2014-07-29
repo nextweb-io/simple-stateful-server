@@ -57,7 +57,6 @@ public class DefaulStatefulService implements StatefulContext {
             }
         });
 
-       // System.out.println("get messages node");
         messagesNode.get(new Closure<Node>() {
 
             @Override

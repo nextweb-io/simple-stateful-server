@@ -1,6 +1,8 @@
 package io.nextweb.sss;
 
-public interface NextwebStateServiceConfiguration {
+import de.mxro.factories.Configuration;
+
+public interface NextwebStateServiceConfiguration extends Configuration {
 
 	/**
 	 * Address of the node under which properties and logs will be stored.
