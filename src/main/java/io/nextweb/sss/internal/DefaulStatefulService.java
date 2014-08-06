@@ -24,8 +24,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-import one.async.joiner.CallbackLatch;
 import one.utils.concurrent.Concurrency;
+import de.mxro.async.latch.CallbackLatch;
 import de.mxro.fn.Closure;
 import de.mxro.fn.Success;
 import de.mxro.fn.SuccessFail;
