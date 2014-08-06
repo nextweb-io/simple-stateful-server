@@ -10,7 +10,6 @@ import io.nextweb.Query;
 import io.nextweb.Session;
 import io.nextweb.engine.fn.IntegerResult;
 import io.nextweb.fn.BasicResult;
-import io.nextweb.fn.Closure;
 import io.nextweb.fn.Result;
 import io.nextweb.fn.Success;
 import io.nextweb.fn.SuccessFail;
@@ -29,6 +28,7 @@ import java.util.Set;
 
 import one.async.joiner.CallbackLatch;
 import one.utils.concurrent.Concurrency;
+import de.mxro.fn.Closure;
 import de.mxro.server.contexts.GetPropertyCallback;
 import de.mxro.server.contexts.LogCallback;
 import de.mxro.server.contexts.SetPropertyCallback;
