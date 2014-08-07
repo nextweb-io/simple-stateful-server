@@ -384,7 +384,7 @@ public class DefaulStatefulService implements StatefulContext {
             @Override
             public void apply(final Success o) {
 
-                callback.onShutdownComplete();
+                callback.onSuccess();
             }
         });
 
