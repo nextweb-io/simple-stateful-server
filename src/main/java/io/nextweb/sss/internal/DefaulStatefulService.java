@@ -10,8 +10,8 @@ import io.nextweb.Query;
 import io.nextweb.Session;
 import io.nextweb.engine.fn.IntegerResult;
 import io.nextweb.jre.Nextweb;
-import io.nextweb.promise.BasicResult;
-import io.nextweb.promise.Result;
+import io.nextweb.promise.BasicPromise;
+import io.nextweb.promise.NextwebPromise;
 import io.nextweb.promise.exceptions.ExceptionListener;
 import io.nextweb.promise.exceptions.ExceptionResult;
 import io.nextweb.promise.exceptions.ImpossibleListener;
@@ -220,7 +220,7 @@ public class DefaulStatefulService implements StatefulContext {
                         @Override
                         public void apply(final NodeList nodeList) {
 
-                            final List<BasicResult<?>> res = new ArrayList<BasicResult<?>>(
+                            final List<BasicPromise<?>> res = new ArrayList<BasicPromise<?>>(
                                     nodeList.size() + 2);
 
                             for (final Node n : nodeList) {
@@ -232,9 +232,9 @@ public class DefaulStatefulService implements StatefulContext {
                             res.add(msgs.clearVersions(conf
                                     .maxMessagesPerNode()));
 
-                            final Result<SuccessFail> getAll = session.getAll(
+                            final NextwebPromise<SuccessFail> getAll = session.getAll(
                                     true,
-                                    res.toArray(new BasicResult[res.size()]));
+                                    res.toArray(new BasicPromise[res.size()]));
 
                             getAll.catchExceptions(new ExceptionListener() {
 
@@ -369,7 +369,7 @@ public class DefaulStatefulService implements StatefulContext {
 
     @Override
     public void shutdown(final ShutdownCallback callback) {
-        final Result<Success> closeRequest = this.session.close();
+        final NextwebPromise<Success> closeRequest = this.session.close();
 
         closeRequest.catchExceptions(new ExceptionListener() {
 
