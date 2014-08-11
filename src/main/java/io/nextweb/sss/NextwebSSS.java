@@ -5,10 +5,9 @@ import io.nextweb.sss.internal.DefaulStatefulService;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
-import one.utils.concurrent.Concurrency;
-
 import org.junit.Assert;
 
+import de.mxro.concurrency.Concurrency;
 import de.mxro.server.contexts.StatefulContext;
 
 public class NextwebSSS {
