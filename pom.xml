@@ -281,5 +281,12 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xs
 			<url>${repos.appjangle-snapshots}</url>
 		</snapshotRepository>
 	</distributionManagement>
-
+	
+	<repositories>
+		<repository>
+			<id>Appjangle Releases</id>
+			<url>http://maven.appjangle.com/appjangle/releases</url>
+		</repository>
+	</repositories>
+	
 </project>
