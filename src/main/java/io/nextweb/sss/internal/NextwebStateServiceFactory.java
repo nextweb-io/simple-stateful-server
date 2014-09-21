@@ -1,7 +1,7 @@
 package io.nextweb.sss.internal;
 
-import one.utils.jre.concurrent.JreConcurrency;
 import io.nextweb.sss.NextwebStateServiceConfiguration;
+import de.mxro.concurrency.jre.JreConcurrency;
 import de.mxro.factories.Configuration;
 import de.mxro.factories.Dependencies;
 import de.mxro.factories.Factory;
