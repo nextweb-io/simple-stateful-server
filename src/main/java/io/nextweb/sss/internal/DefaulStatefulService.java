@@ -26,7 +26,6 @@ import java.util.Set;
 
 import de.mxro.async.AsyncCommon;
 import de.mxro.async.Operation;
-import de.mxro.async.callbacks.ValueCallback;
 import de.mxro.async.flow.CallbackLatch;
 import de.mxro.concurrency.Concurrency;
 import de.mxro.fn.Closure;
@@ -211,7 +210,7 @@ public class DefaulStatefulService implements StatefulContext {
                         @Override
                         public void apply(final NodeList nodeList) {
 
-                            final List<Operation<?>> res = new ArrayList<Operation<?>>(nodeList.size() + 2);
+                            final List<Operation<Object>> res = new ArrayList<Operation<Object>>(nodeList.size() + 2);
 
                             for (final Node n : nodeList) {
                                 res.add(child.removeSafe(n));
