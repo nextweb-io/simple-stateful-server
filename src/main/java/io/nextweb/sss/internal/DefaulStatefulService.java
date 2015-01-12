@@ -220,7 +220,7 @@ public class DefaulStatefulService implements StatefulContext {
 
                             res.add(msgs.clearVersions(conf.maxMessagesPerNode()));
 
-                            AsyncCommon.parallel(res, null);
+                            AsyncCommon.parallel(res.toArray(new Operation[0]), null);
 
                             final NextwebPromise<SuccessFail> getAll = session.getAll(true,
                                     res.toArray(new BasicPromise[res.size()]));
