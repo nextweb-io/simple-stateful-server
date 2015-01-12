@@ -87,7 +87,7 @@ public class DefaulStatefulService implements StatefulContext {
                         System.out.println("IMPOSSILBE " + ir.message());
                         if (depth < 20
 
-                        /* && ir.cause().equals("nodewithaddressalreadydefined") */) {
+                                /* && ir.cause().equals("nodewithaddressalreadydefined") */) {
                             logInternal(depth + 1, path, title, message, callback);
                             return;
                         }
@@ -210,7 +210,7 @@ public class DefaulStatefulService implements StatefulContext {
                         @Override
                         public void apply(final NodeList nodeList) {
 
-                            final List<Operation<Object>> res = new ArrayList<Operation<Object>>(nodeList.size() + 2);
+                            final List<Operation<?>> res = new ArrayList<Operation<?>>(nodeList.size() + 2);
 
                             for (final Node n : nodeList) {
                                 res.add(child.removeSafe(n));
