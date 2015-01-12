@@ -87,7 +87,7 @@ public class DefaulStatefulService implements StatefulContext {
                         System.out.println("IMPOSSILBE " + ir.message());
                         if (depth < 20
 
-                        /* && ir.cause().equals("nodewithaddressalreadydefined") */) {
+                                /* && ir.cause().equals("nodewithaddressalreadydefined") */) {
                             logInternal(depth + 1, path, title, message, callback);
                             return;
                         }
