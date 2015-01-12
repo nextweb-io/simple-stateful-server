@@ -10,7 +10,6 @@ import io.nextweb.Query;
 import io.nextweb.Session;
 import io.nextweb.engine.fn.IntegerResult;
 import io.nextweb.jre.Nextweb;
-import io.nextweb.promise.BasicPromise;
 import io.nextweb.promise.NextwebPromise;
 import io.nextweb.promise.exceptions.ExceptionListener;
 import io.nextweb.promise.exceptions.ExceptionResult;
@@ -26,11 +25,11 @@ import java.util.Set;
 
 import de.mxro.async.AsyncCommon;
 import de.mxro.async.Operation;
+import de.mxro.async.callbacks.ValueCallback;
 import de.mxro.async.flow.CallbackLatch;
 import de.mxro.concurrency.Concurrency;
 import de.mxro.fn.Closure;
 import de.mxro.fn.Success;
-import de.mxro.fn.SuccessFail;
 import de.mxro.server.contexts.GetPropertyCallback;
 import de.mxro.server.contexts.LogCallback;
 import de.mxro.server.contexts.SetPropertyCallback;
@@ -87,7 +86,7 @@ public class DefaulStatefulService implements StatefulContext {
                         System.out.println("IMPOSSILBE " + ir.message());
                         if (depth < 20
 
-                                /* && ir.cause().equals("nodewithaddressalreadydefined") */) {
+                        /* && ir.cause().equals("nodewithaddressalreadydefined") */) {
                             logInternal(depth + 1, path, title, message, callback);
                             return;
                         }
@@ -220,32 +219,20 @@ public class DefaulStatefulService implements StatefulContext {
 
                             res.add(msgs.clearVersions(conf.maxMessagesPerNode()));
 
-                            AsyncCommon.parallel(res.toArray(new Operation[0]), null);
-
-                            final NextwebPromise<SuccessFail> getAll = session.getAll(true,
-                                    res.toArray(new BasicPromise[res.size()]));
-
-                            getAll.catchExceptions(new ExceptionListener() {
+                            AsyncCommon.parallel(res.toArray(new Operation[0]), new ValueCallback<List<Object>>() {
 
                                 @Override
-                                public void onFailure(final ExceptionResult r) {
+                                public void onFailure(final Throwable t) {
                                     scheduledToDelete.remove(link);
-                                    latch.registerFail(r.exception());
+                                    latch.registerFail(t);
                                 }
-                            });
-
-                            getAll.get(new Closure<SuccessFail>() {
 
                                 @Override
-                                public void apply(final SuccessFail o) {
-                                    if (o.isFail()) {
-                                        scheduledToDelete.remove(link);
-                                        latch.registerFail(o.getException());
-                                        return;
-                                    }
+                                public void onSuccess(final List<Object> value) {
 
                                     scheduledToDelete.remove(link);
                                     latch.registerSuccess();
+
                                 }
                             });
 
