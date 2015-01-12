@@ -24,9 +24,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+import de.mxro.async.AsyncCommon;
 import de.mxro.async.callbacks.ValueCallback;
 import de.mxro.async.flow.CallbackLatch;
-import de.mxro.async.jre.Async;
 import de.mxro.concurrency.Concurrency;
 import de.mxro.fn.Closure;
 import de.mxro.fn.Success;
@@ -87,7 +87,7 @@ public class DefaulStatefulService implements StatefulContext {
                         System.out.println("IMPOSSILBE " + ir.message());
                         if (depth < 20
 
-                                /* && ir.cause().equals("nodewithaddressalreadydefined") */) {
+                        /* && ir.cause().equals("nodewithaddressalreadydefined") */) {
                             logInternal(depth + 1, path, title, message, callback);
                             return;
                         }
@@ -220,21 +220,20 @@ public class DefaulStatefulService implements StatefulContext {
 
                             res.add(msgs.clearVersions(conf.maxMessagesPerNode()));
 
-                            Async.parallel(res.toArray(new BasicPromise[res.size()]),
-                                    new ValueCallback<List<Object>>() {
+                            AsyncCommon.parallel(res, new ValueCallback<List<Object>>() {
 
-                                        @Override
-                                        public void onFailure(final Throwable t) {
-                                            // TODO Auto-generated method stub
+                                @Override
+                                public void onFailure(final Throwable t) {
+                                    // TODO Auto-generated method stub
 
-                                        }
+                                }
 
-                                        @Override
-                                        public void onSuccess(final List<Object> value) {
-                                            // TODO Auto-generated method stub
+                                @Override
+                                public void onSuccess(final List<Object> value) {
+                                    // TODO Auto-generated method stub
 
-                                        }
-                                    });
+                                }
+                            });
 
                             final NextwebPromise<SuccessFail> getAll = session.getAll(true,
                                     res.toArray(new BasicPromise[res.size()]));
