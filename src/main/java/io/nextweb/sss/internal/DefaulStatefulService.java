@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Set;
 
 import de.mxro.async.AsyncCommon;
+import de.mxro.async.Operation;
 import de.mxro.async.callbacks.ValueCallback;
 import de.mxro.async.flow.CallbackLatch;
 import de.mxro.concurrency.Concurrency;
@@ -87,7 +88,7 @@ public class DefaulStatefulService implements StatefulContext {
                         System.out.println("IMPOSSILBE " + ir.message());
                         if (depth < 20
 
-                                /* && ir.cause().equals("nodewithaddressalreadydefined") */) {
+                        /* && ir.cause().equals("nodewithaddressalreadydefined") */) {
                             logInternal(depth + 1, path, title, message, callback);
                             return;
                         }
@@ -210,7 +211,7 @@ public class DefaulStatefulService implements StatefulContext {
                         @Override
                         public void apply(final NodeList nodeList) {
 
-                            final List<BasicPromise<?>> res = new ArrayList<BasicPromise<?>>(nodeList.size() + 2);
+                            final List<Operation<?>> res = new ArrayList<Operation<?>>(nodeList.size() + 2);
 
                             for (final Node n : nodeList) {
                                 res.add(child.removeSafe(n));
@@ -220,20 +221,7 @@ public class DefaulStatefulService implements StatefulContext {
 
                             res.add(msgs.clearVersions(conf.maxMessagesPerNode()));
 
-                            AsyncCommon.parallel(res, new ValueCallback<List<Object>>() {
-
-                                @Override
-                                public void onFailure(final Throwable t) {
-                                    // TODO Auto-generated method stub
-
-                                }
-
-                                @Override
-                                public void onSuccess(final List<Object> value) {
-                                    // TODO Auto-generated method stub
-
-                                }
-                            });
+                            AsyncCommon.parallel(res, null);
 
                             final NextwebPromise<SuccessFail> getAll = session.getAll(true,
                                     res.toArray(new BasicPromise[res.size()]));
