@@ -24,7 +24,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+import de.mxro.async.callbacks.ValueCallback;
 import de.mxro.async.flow.CallbackLatch;
+import de.mxro.async.jre.Async;
 import de.mxro.concurrency.Concurrency;
 import de.mxro.fn.Closure;
 import de.mxro.fn.Success;
@@ -44,9 +46,9 @@ public class DefaulStatefulService implements StatefulContext {
 
     private final Set<String> scheduledToDelete;
 
-    private void logInternal(final int depth, final String path,
-            final String title, final String message, final LogCallback callback) {
-       // System.out.println("logging " + path + " " + title);
+    private void logInternal(final int depth, final String path, final String title, final String message,
+            final LogCallback callback) {
+        // System.out.println("logging " + path + " " + title);
         final Query messagesNode = root.select("./" + path, "messages");
 
         messagesNode.catchExceptions(new ExceptionListener() {
@@ -61,15 +63,13 @@ public class DefaulStatefulService implements StatefulContext {
 
             @Override
             public void apply(final Node msgs) {
-               // System.out.println("Messages node retrieved. " + msgs.uri());
+                // System.out.println("Messages node retrieved. " + msgs.uri());
                 final Query appendSafe;
                 if (depth == 0) {
-                    appendSafe = messagesNode.appendSafe(title).appendSafe(
-                            message);
+                    appendSafe = messagesNode.appendSafe(title).appendSafe(message);
                 } else {
-                    appendSafe = messagesNode.appendSafe(title,
-                            "./" + depth + Math.abs(this.hashCode()))
-                            .appendSafe(message);
+                    appendSafe = messagesNode.appendSafe(title, "./" + depth + Math.abs(this.hashCode())).appendSafe(
+                            message);
                 }
 
                 appendSafe.catchExceptions(new ExceptionListener() {
@@ -87,18 +87,15 @@ public class DefaulStatefulService implements StatefulContext {
                         System.out.println("IMPOSSILBE " + ir.message());
                         if (depth < 20
 
-                        /* && ir.cause().equals("nodewithaddressalreadydefined") */) {
-                            logInternal(depth + 1, path, title, message,
-                                    callback);
+                                /* && ir.cause().equals("nodewithaddressalreadydefined") */) {
+                            logInternal(depth + 1, path, title, message, callback);
                             return;
                         }
-                        callback.onFailure(new Exception(
-                                "Impossible to append log message: "
-                                        + ir.message()));
+                        callback.onFailure(new Exception("Impossible to append log message: " + ir.message()));
                     }
                 });
 
-               // System.out.println("get append " + message);
+                // System.out.println("get append " + message);
                 appendSafe.get(new Closure<Node>() {
 
                     @Override
@@ -121,14 +118,13 @@ public class DefaulStatefulService implements StatefulContext {
     }
 
     @Override
-    public void log(final String path, final String title,
-            final String message, final LogCallback callback) {
-        //System.out.println("logging; " + path + " " + title);
+    public void log(final String path, final String title, final String message, final LogCallback callback) {
+        // System.out.println("logging; " + path + " " + title);
         logInternal(0, path, title, message, callback);
     }
 
     private void checkForOverflow(final LogCallback callback, final Node msgs) {
-       // System.out.println("check for overflow. " + msgs.uri());
+        // System.out.println("check for overflow. " + msgs.uri());
         final LinkListQuery selectAllLinks = msgs.selectAllLinks();
 
         selectAllLinks.catchExceptions(new ExceptionListener() {
@@ -144,21 +140,16 @@ public class DefaulStatefulService implements StatefulContext {
             @Override
             public void apply(final LinkList messageLinks) {
 
-                //System.out.println("message: " + msgs.uri());
-               // System.out.println("messages: " + messageLinks.size());
+                // System.out.println("message: " + msgs.uri());
+                // System.out.println("messages: " + messageLinks.size());
 
                 if (messageLinks.size() < conf.maxMessagesPerNode()) {
                     callback.onLogged();
                     return;
                 }
 
-                final List<String> firstLinks = messageLinks.uris()
-                        .subList(
-                                0,
-                                Math.max(
-                                        10,
-                                        messageLinks.size()
-                                                - conf.maxMessagesPerNode()));
+                final List<String> firstLinks = messageLinks.uris().subList(0,
+                        Math.max(10, messageLinks.size() - conf.maxMessagesPerNode()));
 
                 final CallbackLatch latch = new CallbackLatch(firstLinks.size()) {
 
@@ -170,8 +161,7 @@ public class DefaulStatefulService implements StatefulContext {
                     @Override
                     public void onCompleted() {
 
-                        final IntegerResult clearVersions = msgs
-                                .clearVersions(50);
+                        final IntegerResult clearVersions = msgs.clearVersions(50);
 
                         clearVersions.catchExceptions(new ExceptionListener() {
 
@@ -220,8 +210,7 @@ public class DefaulStatefulService implements StatefulContext {
                         @Override
                         public void apply(final NodeList nodeList) {
 
-                            final List<BasicPromise<?>> res = new ArrayList<BasicPromise<?>>(
-                                    nodeList.size() + 2);
+                            final List<BasicPromise<?>> res = new ArrayList<BasicPromise<?>>(nodeList.size() + 2);
 
                             for (final Node n : nodeList) {
                                 res.add(child.removeSafe(n));
@@ -229,11 +218,25 @@ public class DefaulStatefulService implements StatefulContext {
 
                             res.add(msgs.removeSafe(child));
 
-                            res.add(msgs.clearVersions(conf
-                                    .maxMessagesPerNode()));
+                            res.add(msgs.clearVersions(conf.maxMessagesPerNode()));
 
-                            final NextwebPromise<SuccessFail> getAll = session.getAll(
-                                    true,
+                            Async.parallel(res.toArray(new BasicPromise[res.size()]),
+                                    new ValueCallback<List<Object>>() {
+
+                                        @Override
+                                        public void onFailure(final Throwable t) {
+                                            // TODO Auto-generated method stub
+
+                                        }
+
+                                        @Override
+                                        public void onSuccess(final List<Object> value) {
+                                            // TODO Auto-generated method stub
+
+                                        }
+                                    });
+
+                            final NextwebPromise<SuccessFail> getAll = session.getAll(true,
                                     res.toArray(new BasicPromise[res.size()]));
 
                             getAll.catchExceptions(new ExceptionListener() {
@@ -270,10 +273,8 @@ public class DefaulStatefulService implements StatefulContext {
     }
 
     @Override
-    public void setProperty(final String path, final Object value,
-            final SetPropertyCallback callback) {
-        final Query setValueSafe = root.select("./" + path, value)
-                .setValueSafe(value);
+    public void setProperty(final String path, final Object value, final SetPropertyCallback callback) {
+        final Query setValueSafe = root.select("./" + path, value).setValueSafe(value);
 
         setValueSafe.catchExceptions(new ExceptionListener() {
 
@@ -287,8 +288,7 @@ public class DefaulStatefulService implements StatefulContext {
 
             @Override
             public void apply(final Node o) {
-                final IntegerResult clearVersions = setValueSafe
-                        .clearVersions(20);
+                final IntegerResult clearVersions = setValueSafe.clearVersions(20);
                 clearVersions.catchExceptions(new ExceptionListener() {
 
                     @Override
@@ -310,14 +310,12 @@ public class DefaulStatefulService implements StatefulContext {
     }
 
     @Override
-    public void getProperty(final String path,
-            final GetPropertyCallback callback) {
+    public void getProperty(final String path, final GetPropertyCallback callback) {
         getProperty(path, null, callback);
     }
 
     @Override
-    public void getProperty(final String path, final Object defaultValue,
-            final GetPropertyCallback callback) {
+    public void getProperty(final String path, final Object defaultValue, final GetPropertyCallback callback) {
         final Query select;
         if (defaultValue == null) {
             select = root.select("./" + path);
@@ -350,16 +348,13 @@ public class DefaulStatefulService implements StatefulContext {
         });
     }
 
-    public DefaulStatefulService(final NextwebStateServiceConfiguration conf,
-            final Concurrency con) {
+    public DefaulStatefulService(final NextwebStateServiceConfiguration conf, final Concurrency con) {
         super();
         this.conf = conf;
         this.session = Nextweb.createSession();
-        this.root = this.session.node(conf.getRootNodeUri(),
-                conf.getRootNodeSecret());
+        this.root = this.session.node(conf.getRootNodeUri(), conf.getRootNodeSecret());
         this.con = con;
-        this.scheduledToDelete = this.con.newCollection().newThreadSafeSet(
-                String.class);
+        this.scheduledToDelete = this.con.newCollection().newThreadSafeSet(String.class);
 
     }
 
@@ -389,7 +384,5 @@ public class DefaulStatefulService implements StatefulContext {
         });
 
     }
-
-	
 
 }
