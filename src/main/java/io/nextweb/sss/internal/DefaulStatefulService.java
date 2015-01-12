@@ -86,7 +86,7 @@ public class DefaulStatefulService implements StatefulContext {
                         System.out.println("IMPOSSILBE " + ir.message());
                         if (depth < 20
 
-                        /* && ir.cause().equals("nodewithaddressalreadydefined") */) {
+                                /* && ir.cause().equals("nodewithaddressalreadydefined") */) {
                             logInternal(depth + 1, path, title, message, callback);
                             return;
                         }
@@ -219,7 +219,7 @@ public class DefaulStatefulService implements StatefulContext {
 
                             res.add(msgs.clearVersions(conf.maxMessagesPerNode()));
 
-                            AsyncCommon.parallel(res.toArray(new Operation[0]), new ValueCallback<List<Object>>() {
+                            AsyncCommon.parallel(res, new ValueCallback<List<Object>>() {
 
                                 @Override
                                 public void onFailure(final Throwable t) {
