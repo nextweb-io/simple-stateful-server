@@ -23,10 +23,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-import de.mxro.async.AsyncCommon;
-import de.mxro.async.Operation;
-import de.mxro.async.callbacks.ValueCallback;
-import de.mxro.async.flow.CallbackLatch;
 import de.mxro.concurrency.Concurrency;
 import de.mxro.fn.Closure;
 import de.mxro.fn.Success;
@@ -35,6 +31,10 @@ import de.mxro.server.contexts.LogCallback;
 import de.mxro.server.contexts.SetPropertyCallback;
 import de.mxro.server.contexts.StatefulContext;
 import de.mxro.service.callbacks.ShutdownCallback;
+import delight.async.AsyncCommon;
+import delight.async.Operation;
+import delight.async.callbacks.ValueCallback;
+import delight.async.flow.CallbackLatch;
 
 public class DefaulStatefulService implements StatefulContext {
 
