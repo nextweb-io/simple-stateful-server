@@ -1,10 +1,10 @@
 package io.nextweb.sss.internal;
 
-import io.nextweb.sss.NextwebStateServiceConfiguration;
 import de.mxro.concurrency.jre.JreConcurrency;
 import de.mxro.factories.Configuration;
 import de.mxro.factories.Dependencies;
 import de.mxro.factories.Factory;
+import io.nextweb.sss.NextwebStateServiceConfiguration;
 
 public class NextwebStateServiceFactory implements Factory<DefaulStatefulService, NextwebStateServiceConfiguration, Dependencies> {
 

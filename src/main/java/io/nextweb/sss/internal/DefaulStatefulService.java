@@ -1,5 +1,21 @@
 package io.nextweb.sss.internal;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+
+import de.mxro.concurrency.Concurrency;
+import de.mxro.server.contexts.GetPropertyCallback;
+import de.mxro.server.contexts.LogCallback;
+import de.mxro.server.contexts.SetPropertyCallback;
+import de.mxro.server.contexts.StatefulContext;
+import de.mxro.service.callbacks.ShutdownCallback;
+import delight.async.AsyncCommon;
+import delight.async.Operation;
+import delight.async.callbacks.ValueCallback;
+import delight.async.flow.CallbackLatch;
+import delight.functional.Closure;
+import delight.functional.Success;
 import io.nextweb.Link;
 import io.nextweb.LinkList;
 import io.nextweb.LinkListQuery;
@@ -18,23 +34,6 @@ import io.nextweb.promise.exceptions.ImpossibleResult;
 import io.nextweb.promise.exceptions.UndefinedListener;
 import io.nextweb.promise.exceptions.UndefinedResult;
 import io.nextweb.sss.NextwebStateServiceConfiguration;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-
-import de.mxro.concurrency.Concurrency;
-import de.mxro.fn.Closure;
-import de.mxro.fn.Success;
-import de.mxro.server.contexts.GetPropertyCallback;
-import de.mxro.server.contexts.LogCallback;
-import de.mxro.server.contexts.SetPropertyCallback;
-import de.mxro.server.contexts.StatefulContext;
-import de.mxro.service.callbacks.ShutdownCallback;
-import delight.async.AsyncCommon;
-import delight.async.Operation;
-import delight.async.callbacks.ValueCallback;
-import delight.async.flow.CallbackLatch;
 
 public class DefaulStatefulService implements StatefulContext {
 

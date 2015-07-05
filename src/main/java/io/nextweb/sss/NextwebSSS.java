@@ -1,7 +1,5 @@
 package io.nextweb.sss;
 
-import io.nextweb.sss.internal.DefaulStatefulService;
-
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
@@ -9,6 +7,7 @@ import org.junit.Assert;
 
 import de.mxro.concurrency.Concurrency;
 import de.mxro.server.contexts.StatefulContext;
+import io.nextweb.sss.internal.DefaulStatefulService;
 
 public class NextwebSSS {
 
