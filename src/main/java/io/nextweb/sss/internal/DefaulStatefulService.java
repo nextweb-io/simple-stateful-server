@@ -1,5 +1,12 @@
 package io.nextweb.sss.internal;
 
+import delight.async.AsyncCommon;
+import delight.async.Operation;
+import delight.async.callbacks.ValueCallback;
+import delight.async.flow.CallbackLatch;
+import delight.functional.Closure;
+import delight.functional.Success;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -10,12 +17,6 @@ import de.mxro.server.contexts.LogCallback;
 import de.mxro.server.contexts.SetPropertyCallback;
 import de.mxro.server.contexts.StatefulContext;
 import de.mxro.service.callbacks.ShutdownCallback;
-import delight.async.AsyncCommon;
-import delight.async.Operation;
-import delight.async.callbacks.ValueCallback;
-import delight.async.flow.CallbackLatch;
-import delight.functional.Closure;
-import delight.functional.Success;
 import io.nextweb.Link;
 import io.nextweb.LinkList;
 import io.nextweb.LinkListQuery;
