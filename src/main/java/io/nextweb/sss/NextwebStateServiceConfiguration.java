@@ -1,6 +1,6 @@
 package io.nextweb.sss;
 
-import de.mxro.factories.Configuration;
+import delight.factories.Configuration;
 
 public interface NextwebStateServiceConfiguration extends Configuration {
 
