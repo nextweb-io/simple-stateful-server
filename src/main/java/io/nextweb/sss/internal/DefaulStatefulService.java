@@ -4,6 +4,7 @@ import delight.async.AsyncCommon;
 import delight.async.Operation;
 import delight.async.callbacks.ValueCallback;
 import delight.async.flow.CallbackLatch;
+import delight.concurrency.Concurrency;
 import delight.functional.Closure;
 import delight.functional.Success;
 
@@ -11,7 +12,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-import de.mxro.concurrency.Concurrency;
 import de.mxro.server.contexts.GetPropertyCallback;
 import de.mxro.server.contexts.LogCallback;
 import de.mxro.server.contexts.SetPropertyCallback;
