@@ -24,7 +24,7 @@ import io.nextweb.ListQuery;
 import io.nextweb.Node;
 import io.nextweb.NodeList;
 import io.nextweb.Query;
-import io.nextweb.Session;
+import io.nextweb.Client;
 import io.nextweb.engine.fn.IntegerResult;
 import io.nextweb.jre.Nextweb;
 import io.nextweb.promise.NextwebPromise;
@@ -39,7 +39,7 @@ import io.nextweb.sss.NextwebStateServiceConfiguration;
 public class DefaulStatefulService implements StatefulContext {
 
     private final NextwebStateServiceConfiguration conf;
-    private final Session session;
+    private final Client session;
     private final Link root;
     private final Concurrency con;
 
