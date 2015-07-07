@@ -325,7 +325,7 @@ public class DefaulStatefulService implements StatefulContext {
     public DefaulStatefulService(final NextwebStateServiceConfiguration conf, final Concurrency con) {
         super();
         this.conf = conf;
-        this.session = AppjangleApi.createSession();
+        this.session = AppjangleApi.createClient();
         this.root = this.session.node(conf.getRootNodeUri(), conf.getRootNodeSecret());
         this.con = con;
         this.scheduledToDelete = this.con.newCollection().newThreadSafeSet(String.class);
