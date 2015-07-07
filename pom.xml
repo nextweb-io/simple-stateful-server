@@ -41,8 +41,8 @@
 		</dependency>
 
 		<dependency>
-			<groupId>io.nextweb.core</groupId>
-			<artifactId>nextweb-java</artifactId>
+			<groupId>com.appjangle</groupId>
+			<artifactId>appjangle-api</artifactId>
 			<version>[0.0.1,)</version>
 		</dependency>
 
