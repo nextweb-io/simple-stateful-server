@@ -21,7 +21,7 @@ import com.appjangle.api.Node;
 import com.appjangle.api.NodeList;
 import com.appjangle.api.Query;
 import com.appjangle.api.engine.fn.IntegerResult;
-import com.appjangle.api.jre.AppjangleApi;
+import com.appjangle.api.jre.ClientsPortable;
 
 import de.mxro.server.contexts.GetPropertyCallback;
 import de.mxro.server.contexts.LogCallback;
@@ -325,7 +325,7 @@ public class DefaulStatefulService implements StatefulContext {
     public DefaulStatefulService(final NextwebStateServiceConfiguration conf, final Concurrency con) {
         super();
         this.conf = conf;
-        this.session = AppjangleApi.createClient();
+        this.session = ClientsPortable.createClient();
         this.root = this.session.node(conf.getRootNodeUri(), conf.getRootNodeSecret());
         this.con = con;
         this.scheduledToDelete = this.con.newCollection().newThreadSafeSet(String.class);
