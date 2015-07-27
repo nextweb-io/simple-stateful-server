@@ -20,8 +20,8 @@ import com.appjangle.api.ListQuery;
 import com.appjangle.api.Node;
 import com.appjangle.api.NodeList;
 import com.appjangle.api.Query;
-import com.appjangle.api.engine.ClientsPortable;
 import com.appjangle.api.engine.fn.IntegerResult;
+import com.appjangle.api.jre.ClientsPortable;
 
 import de.mxro.server.contexts.GetPropertyCallback;
 import de.mxro.server.contexts.LogCallback;
